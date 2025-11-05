@@ -1,1 +1,42 @@
 
+#include "header.h"
+
+/* グローバル変数（端末データ）の extern 宣言 */
+extern MEM data[USERNUM];
+
+
+void task12(int term_num, int ter_term, NMEM *nmem)
+{
+    // 1. 出力処理 (output)
+
+    // 発端末 (term_num) と リングバックトーン (RINGBACKTONE) を接続
+    output(connect, term_num, RINGBACKTONE);
+
+    // 着端末 (ter_term) と リングトーン (RINGINGTONE) を接続
+    output(connect, ter_term, RINGINGTONE);
+
+
+    // 2. グローバルデータ (data) の設定
+    //    (task12.o が 'data' を参照しているため)
+
+    // 発端末側の設定
+    data[term_num].terminal = ter_term;      // 相手端末番号
+    data[term_num].or_ter_ident = originate; // 発着識別子: 発信側 (1)
+
+    // 着端末側の設定
+    data[ter_term].terminal = term_num;      // 相手端末番号
+    data[ter_term].or_ter_ident = terminate; // 発着識別子: 着信側 (2)
+
+
+    // 3. 状態書き換えデータ (NMEM) の設定
+
+    // nmem[0] (発端末用)
+    nmem[0].flag = 1;              // 書き換えフラグ: ON
+    nmem[0].state = ringing;       // 次状態: ringing (2)
+    nmem[0].tter = term_num;       // 対象端末: 発端末番号
+
+    // nmem[1] (着端末用)
+    nmem[1].flag = 1;              // 書き換えフラグ: ON
+    nmem[1].state = ringing;       // 次状態: ringing (2)
+    nmem[1].tter = ter_term;       // 対象端末: 着端末番号
+}
