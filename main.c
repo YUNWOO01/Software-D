@@ -1,3 +1,6 @@
+#include "header.h" // fix 2025.11.12 C
+MEM data[USERNUM] = {0}; // fix 2025.11.12 C
+
 void initialize_data(void)
 {
     // data[0] は未使用
