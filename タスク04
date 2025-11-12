@@ -1,21 +1,15 @@
-
 #include "header.h"
-
 
 void task04(int term_num, NMEM *nmem)
 {
-    // 1. 出力処理 (output)
-    //    発端末 (term_num) と ビジートーン (BUSYTONE) を接続
+   
     output(connect, term_num, BUSYTONE);
 
-    // 2. 状態書き換えデータ (NMEM) の設定
-    //    nmem[0] を発端末用として使用
+   
+    nmem[0].flag = 1;     // 書き換えフラグ: ON
+    nmem[0].ln   = term_num; // 対象端末番号
+    nmem[0].state = busy; // 次状態: busy (4)
 
-    nmem[0].flag = 1;              // 書き換えフラグ: ON
-    nmem[0].state = busy;          // 次状態: busy (4)
-    nmem[0].tter = term_num;       // 対象端末: 発端末番号
-
-    // nmem[1] (着端末側) は使用しないので、flagをOFFにしておく
-    // (tk_select側で初期化されているのが望ましいが、念のため)
+    // nmem[1] (着端末側) は未使用
     nmem[1].flag = 0;
 }
