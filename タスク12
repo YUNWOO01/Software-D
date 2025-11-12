@@ -1,5 +1,7 @@
 #include "header.h"
 
+extern MEM data[USERNUM];  // main.c で定義されているグローバル変数を参照
+
 
 void task12(int term_num, int ter_term, NMEM *nmem)
 {
