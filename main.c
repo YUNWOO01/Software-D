@@ -1,5 +1,10 @@
-#include "header.h" // fix 2025.11.12 C
-MEM data[USERNUM] = {0}; // fix 2025.11.12 C
+#include <stdio.h>
+#include <string.h>
+#include "header.h"
+
+
+MEM data[USERNUM];
+
 
 void initialize_data(void)
 {
@@ -36,6 +41,9 @@ void initialize_data(void)
     printf("端末データを初期化しました。\n");
 }
 
+/*
+ * メイン関数
+ */
 int main(void)
 {
     char input_buffer[INPUT_LEN];
