@@ -44,3 +44,10 @@ gcc main.c st_ana.c output.c task04.c task12.c task20.c next_state.c tk_select.c
 通話中
 1 onhook
 切断
+task04の機能
+1 offhook 受話器を取る
+1 dial 4002 2に電話をかける
+2 offhook
+3 offhook
+3 dial 4002
+3の状態が４になる
