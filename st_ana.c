@@ -45,7 +45,7 @@ ST_ANA st_ana(int ln, int sig) {
     else if (st == ringing) {
         if (sig == offhook && data[ln].or_ter_ident == terminate) {
             /* Terminating side answers: go to connect (talk) */
-            r.task = TASK12;
+            r.task = TASK20;
             return r;
         }
         if (sig == onhook && data[ln].or_ter_ident == originate) {
