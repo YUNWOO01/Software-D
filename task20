@@ -1,0 +1,39 @@
+
+
+#include <stdio.h>
+#include "header.h"
+
+
+extern MEM data[USERNUM];
+
+
+
+
+
+void task20(int term_num, NMEM *nmem)
+{
+    int originate_term; // 発信側端末番号
+
+   
+    originate_term = data[term_num].terminal;
+
+   
+    output(disconnect, term_num, RINGINGTONE);
+   
+    output(disconnect, originate_term, RINGBACKTONE);
+
+   
+    printf(">> OUTPUT: CONNECT ( %d, %d ) - 両端末間で通話パスを確立\n", originate_term, term_num);
+   
+    
+    nmem[0].flag = 1;
+    nmem[0].ln   = term_num;
+    nmem[0].state = talk; // 状態: talk (3)
+
+    
+    nmem[1].flag = 1;
+    nmem[1].ln   = originate_term;
+    nmem[1].state = talk; // 状態: talk (3)
+
+    printf(">> TASK20: 通話状態へ移行しました (端末%d, 端末%d)\n", originate_term, term_num);
+}
