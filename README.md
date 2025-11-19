@@ -34,9 +34,13 @@ task04=話中処理タスク(相手が話中だった場合に、発信元に話
 task12=呼び出し処理タスク(相手を呼び出す処理です。発信元に呼び出し音 (RINGBACKTONE)、着信先に着信音 (RINGINGTONE) を流し、両方の状態を ringing (2) に変更します。)
 
 実行方法
-gcc main.c st_ana.c output.c task04.c task12.c next_state.c tk_select.c -o tin
+gcc main.c st_ana.c output.c task04.c task12.c task20.c next_state.c tk_select.c -o tin
 ./tin
 
 取扱説明書
 1 offhook 受話器を取る
 1 dial 400? ?に電話をかける
+? offhook
+通話中
+1 onhook
+切断
