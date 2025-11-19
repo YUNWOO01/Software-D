@@ -1,15 +1,18 @@
+#include <stdio.h>
 #include "header.h"
 
 void task04(int term_num, NMEM *nmem)
 {
-   
+    // 指定のメッセージを表示 (先頭にスペースがあることに注意)
+    printf(" \n回線が塞がってます！\n");
+
+    /* 発信側にビジートーンを送出 */
     output(connect, term_num, BUSYTONE);
 
-   
-    nmem[0].flag = 1;     // 書き換えフラグ: ON
-    nmem[0].ln   = term_num; // 対象端末番号
-    nmem[0].state = busy; // 次状態: busy (4)
+    /* 次状態 busy を設定 */
+    nmem[0].flag  = 1;
+    nmem[0].ln    = term_num;
+    nmem[0].state = busy;
 
-    // nmem[1] (着端末側) は未使用
     nmem[1].flag = 0;
 }
