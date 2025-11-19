@@ -1,6 +1,14 @@
+/* * tk_select.c (修正版 3)
+ * * tk_select.c 内にあったダミーの next_state の定義を削除
+ * (next_state.c を使うため)
+ */
+
 #include <stdio.h>
 #include "header.h"
 
+/* -----------------------------------------------
+ * グローバル変数の参照
+ * ----------------------------------------------- */
 extern MEM data[USERNUM];
 
 
@@ -67,9 +75,7 @@ void task14(int term_num, NMEM *nmem) {
     output(connect, term_num, BUSYTONE); // (仮) 話中音を鳴らす
     nmem[0].flag = 1; nmem[0].ln = term_num; nmem[0].state = busy;
 }
-void task20(int term_num, NMEM *nmem) { /* ダミー */ }
 void task23(int term_num, NMEM *nmem) { /* ダミー */ }
-void task30(int term_num, NMEM *nmem) { /* ダミー */ }
 void task40(int term_num, NMEM *nmem) { /* ダミー */ }
 
 /* -----------------------------------------------
@@ -136,14 +142,17 @@ void tk_select(int term_num, int signal, int dial_num)
             if (ter_term_num == 0) ter_term_num = data[term_num].terminal; 
             task12(term_num, ter_term_num, nmem);
             break;
-            
+        case TASK20:
+            task20(term_num, nmem);
+            break;  
+        case TASK30:
+            task30(term_num, nmem);
+            break;  
         // ダミーで呼び出すタスク
         case TASK01: task01(term_num, nmem); break;
         case TASK10: task10(term_num, nmem); break;
         case TASK14: task14(term_num, nmem); break;
-        case TASK20: task20(term_num, nmem); break;
         case TASK23: task23(term_num, nmem); break;
-        case TASK30: task30(term_num, nmem); break;
         case TASK40: task40(term_num, nmem); break;
 
         default:
