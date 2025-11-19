@@ -9,3 +9,11 @@
 tk_select=制御関数、st_ana=状態分析関数、next_state=状態書き換え関数、output=出力関数、main=main関数
 task04=話中処理タスク(相手が話中だった場合に、発信元に話中音 (BUSYTONE) を流し、状態を busy (4) に変更します。)
 task12=呼び出し処理タスク(相手を呼び出す処理です。発信元に呼び出し音 (RINGBACKTONE)、着信先に着信音 (RINGINGTONE) を流し、両方の状態を ringing (2) に変更します。)
+
+実行方法
+gcc main.c st_ana.c output.c task04.c task12.c next_state.c tk_select.c -o tin
+./tin
+
+取扱説明書
+1 offhook 受話器を取る
+1 dial 400? ?に電話をかける
