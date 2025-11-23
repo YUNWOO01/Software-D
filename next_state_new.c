@@ -2,21 +2,18 @@
 
 extern MEM data[USERNUM];
 
-void next_state(NMEM *nm)
+void next_state(NMEM *nmem)
 {
-    int i;
+    for (int i = 0; i < 3; i++) {
 
-    for (i = 0; i < 3; i++) {
-        if (nm[i].flag == 1) {
+        if (nmem[i].flag == 1) {
+            int ln = nmem[i].ln;
+            int st = nmem[i].state;
 
-            int ln = nm[i].ln;
-            int st = nm[i].state;
-
-            if (ln >= 1 && ln <= 4) {
+            if (ln >= 1 && ln <= USERNUM)
                 data[ln].state = st;
-            }
 
-            nm[i].flag = 0;
+            nmem[i].flag = 0;
         }
     }
 }
