@@ -16,12 +16,14 @@ ST_ANA st_ana(int ln, int sig)
     if (st == idle) {
         if (sig == offhook) { r.anal = OR_ANA_FUNC; return r; }
         if (sig == dial)    { r.task = TASK04;      return r; }
+        if (sig == onhook)  { printf("イベント無効です！\n"); r.task = 0; return r;}
     }
 
     /* ---- dialtone ---- */
     else if (st == dialtone) {
         if (sig == dial)    { r.anal = NUM_ANA_FUNC; return r; }
         if (sig == onhook)  { r.task = TASK10;       return r; }
+        if (sig == offhook)  { printf("イベント無効です！\n"); r.task = 0; return r;}
     }
 
     /* ---- ringing ---- */
@@ -49,6 +51,12 @@ ST_ANA st_ana(int ln, int sig)
             r.task = TASK14;
             return r;
         }
+
+        if (sig == offhook) {
+            printf("イベント無効です！\n");
+            r.task = 0;
+            return r;
+        }
     }
 
     /* ---- talk ---- */
@@ -65,14 +73,15 @@ ST_ANA st_ana(int ln, int sig)
 
             /* 3. 状態終了 */
             data[ln].state      = idle;
-            data[partner].state = idle;
+            data[partner].state = busy;
 
             return r;
         }
 
         /* 話中にダイヤル → エラー */
         if (sig == dial) {
-            r.task = TASK04;
+            printf("イベント無効です！\n");
+            r.task = 0;
             return r;
         }
     }
@@ -80,7 +89,7 @@ ST_ANA st_ana(int ln, int sig)
     /* ---- busy ---- */
     else if (st == busy) {
         if (sig == onhook) {
-            r.task = TASK01;
+            r.task = TASK40;
             return r;
         }
     }
