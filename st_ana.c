@@ -14,7 +14,15 @@ ST_ANA st_ana(int ln, int sig)
 
     /* ---- idle ---- */
     if (st == idle) {
-        if (sig == offhook) { r.anal = OR_ANA_FUNC; return r; }
+        if (sig == offhook) {
+            if (data[ln].or_ac == NO) {
+                printf("[%d]=>ビジー音送出\n", ln);
+                r.task = TASK04;
+                return r;
+            }
+            r.anal = OR_ANA_FUNC; 
+            return r;
+        }
         if (sig == dial)    { r.task = TASK04;      return r; }
         if (sig == onhook)  { printf("イベント無効です！\n"); r.task = 0; return r;}
     }
@@ -37,7 +45,7 @@ ST_ANA st_ana(int ln, int sig)
             output(disconnect, partner, RINGBACKTONE);
 
             /* 2. 接続メッセージ */
-            printf("[%d]と[%d]=>接続\n", partner, ln);
+            printf("[%d]と[%d]=>接続\n", partner,ln);
 
             /* 3. 両方を通話状態へ */
             data[ln].state      = talk;
