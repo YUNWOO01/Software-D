@@ -53,7 +53,6 @@
 #define TASK23 523
 #define TASK30 530
 #define TASK40 540
-#define TASK50 550
 
 /*構造体型宣言*/
 typedef struct{
