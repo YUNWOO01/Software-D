@@ -25,6 +25,7 @@ ST_ANA st_ana(int ln, int sig)
         }
         if (sig == dial)    { r.task = TASK04;      return r; }
         if (sig == onhook)  { printf("イベント無効です！\n"); r.task = 0; return r;}
+        if (sig == voicemail) { r.task = TASK50; return r; }
     }
 
     /* ---- dialtone ---- */
