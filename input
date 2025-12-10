@@ -8,6 +8,12 @@
 extern MEM data[USERNUM];
 extern void tk_select(int, int, int);
 
+/* mailbox API は header.h にプロトタイプがある想定 */
+extern void mailbox_list(int ln);
+extern void mailbox_play(int ln, int idx);
+extern void mailbox_delete(int ln, int idx);
+extern void init_mailboxes(void);
+
 /* 安全に1行読むユーティリティ */
 static int read_line(char *buf, size_t sz)
 {
@@ -39,6 +45,7 @@ void init_data(void)
         data[i].or_ter_ident = terminate;
     }
 }
+
 /* 状態名取得（表示用） */
 static const char *state_name(int st)
 {
@@ -59,7 +66,7 @@ static void show_individual_data(void)
     int cont = 1;
     while (cont) {
         printf("個別データ情報\n");
-        printf("状態(1),発信を拒否する端末(2),相手端末(3),発着識別子(4)>");
+        printf("状態(1),発信を拒否する端末(2),相手端末(3),発着識別子(4),留守電(5)>");
         fflush(stdout);
         if (!read_line(line, sizeof(line))) return;
         int choice = atoi(line);
@@ -89,6 +96,45 @@ static void show_individual_data(void)
                 const char *s = (data[i].or_ter_ident == originate) ? "ORIG" : "TERMINATE";
                 printf("%8d%12s\n", i, s);
             }
+        } else if (choice == 5) {
+            /* 留守電メニュー：端末を指定して一覧/再生/削除 */
+            printf("留守電一覧を表示します。どの端末を見ますか？>");
+            fflush(stdout);
+            if (!read_line(line, sizeof(line))) return;
+            int t = atoi(line);
+            if (t < 1 || t > USERNUM - 1) {
+                printf("端末番号範囲外\n");
+            } else {
+                int cont2 = 1;
+                while (cont2) {
+                    mailbox_list(t);
+                    printf("再生=1, 削除=2, 戻る=0 >");
+                    fflush(stdout);
+                    if (!read_line(line, sizeof(line))) return;
+                    int op = atoi(line);
+                    if (op == 1) {
+                        printf("再生するメッセージ番号を入力>");
+                        fflush(stdout);
+                        if (!read_line(line, sizeof(line))) return;
+                        int midx = atoi(line);
+                        mailbox_play(t, midx);
+                    } else if (op == 2) {
+                        printf("削除するメッセージ番号を入力>");
+                        fflush(stdout);
+                        if (!read_line(line, sizeof(line))) return;
+                        int midx = atoi(line);
+                        mailbox_delete(t, midx);
+                    } else if (op == 0) {
+                        break;
+                    } else {
+                        printf("無効な選択です\n");
+                    }
+                    printf("他の操作を行いますか？ Yes=1 No=0 >");
+                    fflush(stdout);
+                    if (!read_line(line, sizeof(line))) return;
+                    cont2 = atoi(line);
+                }
+            }
         } else {
             printf("無効な選択です\n");
         }
@@ -108,6 +154,10 @@ int main(void)
     int ln, sig, num;
     char buf[128];
 
+    /* 起動初期化 */
+    init_data();
+    init_mailboxes();
+
     printf("■□■□設計演習C Ver.1.3 ■□■□\n");
     printf("初期設定変更を行いますか？Yes=1 No=0 >");
     fflush(stdout);
@@ -115,24 +165,28 @@ int main(void)
     initchg = atoi(line);
 
     if (initchg > 0) {
-        /* 初期設定：発信を許可しない端末の登録（0で終了） */
-        for (;;) {
+        /* ユーザーが "初期設定を行う" と答えたら、
+           1つの端末番号を入力して設定を行い、その直後に再度
+           "初期設定変更を行いますか？" と確認する流れに変更 */
+        while (initchg > 0) {
             printf("発信を許可しない端末番号入力>");
             fflush(stdout);
-            if (!read_line(line, sizeof(line))) break;
+            if (!read_line(line, sizeof(line))) { initchg = 0; break; }
             int t = atoi(line);
             if (t == 0) break;
             if (t < 1 || t > USERNUM - 1) {
                 printf("端末番号範囲外\n");
-                continue;
+            } else {
+                data[t].or_ac = NO;
+                printf("端末[%d]を発信不可にしました．\n", t);
             }
-            data[t].or_ac = NO;
-            printf("端末[%d]を発信不可にしました．\n", t);
+
+            /* 端末1件の入力後、改めて初期設定を続けるか確認する */
+            printf("初期設定変更を行いますか？Yes=1 No=0 >");
+            fflush(stdout);
+            if (!read_line(line, sizeof(line))) { initchg = 0; break; }
+            initchg = atoi(line);
         }
-        printf("初期設定変更を行いますか？Yes=1 No=0 >");
-        fflush(stdout);
-        if (!read_line(line, sizeof(line))) return 0;
-        initchg = atoi(line);
     }
 
     for (;;) {
@@ -163,8 +217,8 @@ int main(void)
             continue;
         }
 
-        /* イベント入力（3:留守電 を追加） */
-        printf("イベント(0:offhook   1:onhook   2:dial   3:留守電)>");
+        /* イベント入力（3:留守電 を追加、4: 留守電メニュー追加） */
+        printf("イベント(0:offhook   1:onhook   2:dial   3:留守電   4:留守電メニュー)>");
         fflush(stdout);
         if (!read_line(buf, sizeof(buf))) break;
         /* 同様に空白をスキップして判定 */
@@ -176,6 +230,40 @@ int main(void)
             continue;
         }
         sig = atoi(p);
+
+        if (sig == 4) {
+            /* イベント側から端末の留守電メニューを開く */
+            int contm = 1;
+            while (contm) {
+                mailbox_list(ln);
+                printf("再生=1, 削除=2, 戻る=0 >");
+                fflush(stdout);
+                if (!read_line(line, sizeof(line))) { contm = 0; break; }
+                int op = atoi(line);
+                if (op == 1) {
+                    printf("再生するメッセージ番号を入力>");
+                    fflush(stdout);
+                    if (!read_line(line, sizeof(line))) break;
+                    int midx = atoi(line);
+                    mailbox_play(ln, midx);
+                } else if (op == 2) {
+                    printf("削除するメッセージ番号を入力>");
+                    fflush(stdout);
+                    if (!read_line(line, sizeof(line))) break;
+                    int midx = atoi(line);
+                    mailbox_delete(ln, midx);
+                } else if (op == 0) {
+                    break;
+                } else {
+                    printf("無効な選択です\n");
+                }
+                printf("他の操作を行いますか？ Yes=1 No=0 >");
+                fflush(stdout);
+                if (!read_line(line, sizeof(line))) { contm = 0; break; }
+                contm = atoi(line);
+            }
+            continue;
+        }
 
         if (sig == dial) {
             printf("電話番号(4001-4004)>");
