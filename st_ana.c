@@ -23,7 +23,8 @@ ST_ANA st_ana(int ln, int sig)
             r.anal = OR_ANA_FUNC; 
             return r;
         }
-        if (sig == dial)    { r.task = TASK04;      return r; }
+        /* idleでのダイヤルは無効（オフフックしていないのにダイヤルした） */
+        if (sig == dial)    { printf("イベント(2)は無効！\n"); r.task = 0; return r; }
         if (sig == onhook)  { printf("イベント無効です！\n"); r.task = 0; return r;}
     }
 
@@ -37,20 +38,9 @@ ST_ANA st_ana(int ln, int sig)
     /* ---- ringing ---- */
     else if (st == ringing) {
 
-        /* ★★★ 着信側 offhook → 接続（task20 を st_ana 内で実行） ★★★ */
+        /* 着信側で offhook の場合（着信応答） */
         if (sig == offhook && id == terminate) {
-
-            /* 1. 音を止める */
-            output(disconnect, ln,      RINGINGTONE);
-            output(disconnect, partner, RINGBACKTONE);
-
-            /* 2. 接続メッセージ */
-            printf("[%d]と[%d]=>接続\n", partner,ln);
-
-            /* 3. 両方を通話状態へ */
-            data[ln].state      = talk;
-            data[partner].state = talk;
-
+            r.task = TASK23;
             return r;
         }
 
@@ -60,7 +50,8 @@ ST_ANA st_ana(int ln, int sig)
             return r;
         }
 
-        if (sig == offhook) {
+        /* 上の有効なケース以外の onhook/offhook は無効イベント */
+        if (sig == onhook || sig == offhook) {
             printf("イベント無効です！\n");
             r.task = 0;
             return r;
@@ -70,25 +61,14 @@ ST_ANA st_ana(int ln, int sig)
     /* ---- talk ---- */
     else if (st == talk) {
 
-        /* ★★★ 通話中に onhook → 切断（task23 を st_ana 内で実行） ★★★ */
         if (sig == onhook) {
-
-            /* 1. 切断メッセージ */
-            printf("[%d]と[%d]=>切断\n", ln, partner);
-
-            /* 2. ビジー音（相手側に送出） */
-            printf("[%d]=>ビジー音送出\n", partner);
-
-            /* 3. 状態終了 */
-            data[ln].state      = idle;
-            data[partner].state = busy;
-
+            r.task=TASK30;
             return r;
         }
 
-        /* 話中にダイヤル → エラー */
+        /* 話中にダイヤル → エラー（ダイヤル無効はイベント(2)として表示） */
         if (sig == dial) {
-            printf("イベント無効です！\n");
+            printf("イベント(2)は無効！\n");
             r.task = 0;
             return r;
         }
